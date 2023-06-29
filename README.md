@@ -1,37 +1,36 @@
 # MPM: A Unified 2D-3D Human Pose Representation via Masked Pose Modeling
 
-Make sure you have the following dependencies installed:
+Estimating 3D human poses only from a 2D human pose sequence is thoroughly explored in recent years. Yet, prior to this, no such work has attempted to unify 2D and 3D pose representations in the shared feature space. In this paper, we propose \mpm, a unified 2D-3D human pose representation framework via masked pose modeling. We treat 2D and 3D poses as two different modalities like vision and language and build a single-stream transformer-based architecture. We apply three pretext tasks, which are masked 2D pose modeling, masked 3D pose modeling, and masked 2D pose lifting to pre-train our network and use full-supervision to perform further fine-tuning. A high masking ratio of $72.5~\%$ in total with a spatio-temporal mask sampling strategy leading to better relation modeling both in spatial and temporal domains. \mpm~can handle multiple tasks including 3D human pose estimation, 3D pose estimation from occluded 2D pose, and 3D pose completion in a \textbf{single} framework. We conduct extensive experiments and ablation studies on several widely used human pose datasets and achieve state-of-the-art performance on Human3.6M and MPI-INF-3DHP. 
 
-* PyTorch >= 0.4.0
-* NumPy
-* Matplotlib
+
+## Install
+```
+pip install torch matplotlib
+```
 
 ## Dataset preparation
-## Dataset
 
-Our model is evaluated on [Human3.6M](http://vision.imar.ro/human3.6m) and [MPI-INF-3DHP](https://vcai.mpi-inf.mpg.de/3dhp-dataset/) datasets. 
+Our model is evaluated on [Human3.6M](http://vision.imar.ro/human3.6m) and [MPI-INF-3DHP](https://vcai.mpi-inf.mpg.de/3dhp-dataset/) datasets, and we ese AMASS dataset for better pre-training. 
 
-### Human3.6M and MPI_INF_3DHP
+### Human3.6M and MPI-INF-3DHP
 Dataset setting is same as this repo [P-STMO](https://github.com/paTRICK-swk/P-STMO). You can download the processed .npz file from their repo and put the .npz files in ./dataset folder.
 
-### Prepare AMASS Dataset 
+### AMASS
 coming soon
-
 
 ## Evaluating our models
 Model checkpoint is not published yet.
-## evaluate on Human3.6M (CPN)
+### evaluate on Human3.6M (CPN)
 ```
 python trainer.py -f 243 --n_joints 17 --gpu 0,1 --reload 1 --layers 4 -tds 2 --previous_dir x.pth --refine --refine_reload 1 x_refine.pth
 ```
 
-## evaluate on Human3.6M (GT)
+### evaluate on Human3.6M (GT)
 ```
 python trainer.py -f 243 k gt  --n_joints 17 --gpu 0,1 --reload 1 --layers 4 -tds 2 --previous_dir x.pth --refine --refine_reload 1 --previous_refine_name x_refine.pth
 ```
 
-
-## evaluate on MPI_INF_3DHP(GT)
+### evaluate on MPI_INF_3DHP(GT)
 ```
 python trainer_3dhp.py -f 243 --n_joints 16 --gpu 0,1 --reload 1 --layers 4 -tds 1 --previous_dir x.pth --refine --refine_reload 1 --previous_refine_name x.pth
 ```
@@ -40,9 +39,6 @@ python trainer_3dhp.py -f 243 --n_joints 16 --gpu 0,1 --reload 1 --layers 4 -tds
 
 ### Prepare Poseaug Generator
 You should follow the instructions in [poseaug](https://github.com/jfzhang95/PoseAug) and got generator checkpoint for human3.6M. Then put the generator checkpoints in ./Augpart/chk foler. You can put as many as you can get and modify the list in file ./Augpart/gan_preparation.py  
-
-
-
 
 ### Pretrain a model for 17 joints (only on h36m dataset)
 ```python
@@ -75,13 +71,12 @@ Finetune 3DHPE Model for MPI_INF_3DHP with 16 joints:
 python trainer_3dhp.py -f 243 -k gt --train 1 --n_joints 16 -b 1024 --gpu 0,1 --lr 0.0007 -lrd 0.97 --layers 3 -tds 1 (--MAEreload 1 --previous_dir /path/to/pretrainedcheckpoint)(optional)
 ```
 
-## Train imcomplete 2D->3D  Model
+## Train imcomplete 2D->3D Model
 You can reload pretrained model or train model without reloading checkpoint:
 ```python
 python pretrainer.py -f 27 -b 2048 --model MAE -k gt --train 1 --layers 3 -tds 2 --lr 0.0002 -lrd 0.97 --name maskedliftcam -tmr 0 -smn 6 --gpu 0,1 --dataset h36m --MAE --comp2dlift 1 
 (--MAEreload 1 --MAEcp /path/to/model)(optional)  
 ```
-
 
 ## Train imcomplete 3D -> 3D Model
 You can reload pretrained model or train model without reloading checkpoint:
@@ -89,7 +84,6 @@ You can reload pretrained model or train model without reloading checkpoint:
 python pretrainer.py -f 27 -b 2048 --model MAE -k gt --train 1 --layers 3 -tds 2 --lr 0.0002 -lrd 0.97 --name comp3dcam -tmr 0 -smn 3 --gpu 0,1 --dataset h36m --MAE --comp3d 1 
 (--MAEreload 1 --MAEcp /path/to/model)(optional)
 ```
-
 
 ## Acknowledgement
 Our code refers to the following repositories.
@@ -101,7 +95,3 @@ Our code refers to the following repositories.
 * [P-STMO](https://github.com/paTRICK-swk/P-STMO)
 
 We thank the authors for releasing their codes.
-
-## Note
-This code might have some bugs because we temporarily consolidated scattered code together.
-
