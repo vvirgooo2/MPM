@@ -38,7 +38,7 @@ python trainer_3dhp.py -f 243 --n_joints 16 --gpu 0,1 --reload 1 --layers 4 -tds
 You should follow the instructions in [poseaug](https://github.com/jfzhang95/PoseAug) and got generator checkpoint for human3.6M. Then put the generator checkpoints in ./Augpart/chk foler. You can put as many as you can get and modify the list in file ./Augpart/gan_preparation.py  
 
 ### Prepare AMASS Dataset 
-coming sson
+coming soon
 
 
 ### Pretrain a model for 17 joints (only on h36m dataset)
