@@ -11,7 +11,11 @@ Make sure you have the following dependencies installed:
 
 Our model is evaluated on [Human3.6M](http://vision.imar.ro/human3.6m) and [MPI-INF-3DHP](https://vcai.mpi-inf.mpg.de/3dhp-dataset/) datasets. 
 
+### Human3.6M and MPI_INF_3DHP
 Dataset setting is same as this repo [P-STMO](https://github.com/paTRICK-swk/P-STMO). You can download the processed .npz file from their repo and put the .npz files in ./dataset folder.
+
+### Prepare AMASS Dataset 
+coming soon
 
 
 ## Evaluating our models
@@ -37,8 +41,7 @@ python trainer_3dhp.py -f 243 --n_joints 16 --gpu 0,1 --reload 1 --layers 4 -tds
 ### Prepare Poseaug Generator
 You should follow the instructions in [poseaug](https://github.com/jfzhang95/PoseAug) and got generator checkpoint for human3.6M. Then put the generator checkpoints in ./Augpart/chk foler. You can put as many as you can get and modify the list in file ./Augpart/gan_preparation.py  
 
-### Prepare AMASS Dataset 
-coming soon
+
 
 
 ### Pretrain a model for 17 joints (only on h36m dataset)
