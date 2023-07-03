@@ -1,6 +1,10 @@
 # MPM: A Unified 2D-3D Human Pose Representation via Masked Pose Modeling
 
-Estimating 3D human poses only from a 2D human pose sequence is thoroughly explored in recent years. Yet, prior to this, no such work has attempted to unify 2D and 3D pose representations in the shared feature space. In this paper, we propose MPM, a unified 2D-3D human pose representation framework via masked pose modeling. We treat 2D and 3D poses as two different modalities like vision and language and build a single-stream transformer-based architecture. We apply three pretext tasks, which are masked 2D pose modeling, masked 3D pose modeling, and masked 2D pose lifting to pre-train our network and use full-supervision to perform further fine-tuning. A high masking ratio of 72.5% in total with a spatio-temporal mask sampling strategy leading to better relation modeling both in spatial and temporal domains. MPM can handle multiple tasks including 3D human pose estimation, 3D pose estimation from occluded 2D pose, and 3D pose completion in a single framework. We conduct extensive experiments and ablation studies on several widely used human pose datasets and achieve state-of-the-art performance on Human3.6M and MPI-INF-3DHP. 
+[![](http://img.shields.io/badge/cs.CV-arXiv%3A2306.17201-B31B1B.svg)](https://arxiv.org/abs/2306.17201)
+
+> MPM: A Unified 2D-3D Human Pose Representation via Masked Pose Modeling  
+> Zhenyu Zhang<sup>\*</sup>, [Wenhao Chai](https://rese1f.github.io/)<sup>\*</sup>, [Zhongyu Jiang](https://zhyjiang.github.io/), [Tian Ye](https://owen718.github.io/), Mingli Song, Jenq-Neng Hwang, Gaoang Wang  
+> arXiv 2023.
 
 ## Install
 ```
