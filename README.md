@@ -25,7 +25,7 @@ coming soon
 Checkpoint: [link](https://drive.google.com/drive/folders/1wALsIyyHnKzVDCYjUpuC7N_MFZHcRkA5?usp=drive_link)
 ### evaluate on Human3.6M (CPN)
 ```
-python trainer.py -f 243 --n_joints 17 --gpu 0,1 --reload 1 --layers 4 -tds 2 --previous_dir x.pth --refine --refine_reload 1 x_refine.pth
+python trainer.py -f 243 --n_joints 17 --gpu 0,1 --reload 1 --layers 4 -tds 2 --previous_dir x.pth --refine --refine_reload 1 --previous_refine_name x_refine.pth
 ```
 
 ### evaluate on Human3.6M (GT)
