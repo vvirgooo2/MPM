@@ -2,9 +2,9 @@
 
 [![](http://img.shields.io/badge/cs.CV-arXiv%3A2306.17201-B31B1B.svg)](https://arxiv.org/abs/2306.17201)
 
-> MPM: A Unified 2D-3D Human Pose Representation via Masked Pose Modeling  
-> Zhenyu Zhang<sup>\*</sup>, [Wenhao Chai](https://rese1f.github.io/)<sup>\*</sup>, [Zhongyu Jiang](https://zhyjiang.github.io/), [Tian Ye](https://owen718.github.io/), Mingli Song, Jenq-Neng Hwang, Gaoang Wang  
-> arXiv 2023.
+> **MPM: A Unified 2D-3D Human Pose Representation via Masked Pose Modeling**  
+> Zhenyu Zhang<sup>\*</sup>, Wenhao Chai<sup>\*</sup>, Zhongyu Jiang, Tian Ye, Mingli Song, Jenq-Neng Hwang, Gaoang Wang✉️   
+> _arXiv 2023._
 
 ## Install
 ```
