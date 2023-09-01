@@ -33,9 +33,35 @@ python trainer.py -f 243 --n_joints 17 --gpu 0,1 --reload 1 --layers 4 -tds 2 --
 python trainer.py -f 243 k gt  --n_joints 17 --gpu 0,1 --reload 1 --layers 4 -tds 2 --previous_dir x.pth --refine --refine_reload 1 --previous_refine_name x_refine.pth
 ```
 
-### evaluate on MPI_INF_3DHP(GT)
+## evaluate on Completion Im3D -> 3D
+| Mask_Manner_3D  |         Joints         |  
+|  ----  | ----  |
+| 0 | left leg |
+| 1 | left arm |
+| 2 | right arm | 
+| 3 | right leg | 
+
 ```
-python trainer_3dhp.py -f 243 --n_joints 16 --gpu 0,1 --reload 1 --layers 4 -tds 1 --previous_dir x.pth --refine --refine_reload 1 --previous_refine_name x.pth
+python pretrainer.py -f 27 --model MAE --n_joints 17 \
+-k gt --train 0 --layers 3 -tds 2  \
+--gpu 1 --dataset h36m --MAE --comp3d 1 --test_augmentation True \
+--MAEreload 1 --MAEcp path/to/checkpoint --mask_manner3D 0,1,2,3
+```
+
+## evaluate on Completion Im2D -> 3D
+| Mask_Manner_3D  |         Joints         |  
+|  ----  | ----  |
+| 0 | two legs |
+| 1 | two arms |
+| 2 | left leg + left arm | 
+| 3 | right leg + right arm | 
+
+```
+python pretrainer.py -f 27 --model MAE --n_joints 17 \
+-k gt --train 0 --layers 3 -tds 2  \
+--gpu 1 --dataset h36m --MAE --comp2dlift 1 \ 
+--MAEreload 1 --MAEcp path/to/checkpoint --mask_manner2D 0,1,2,3
+```
 ```
 
 ## Pretraining from scratch
@@ -74,17 +100,18 @@ Finetune 3DHPE Model for MPI_INF_3DHP with 16 joints:
 python trainer_3dhp.py -f 243 -k gt --train 1 --n_joints 16 -b 1024 --gpu 0,1 --lr 0.0007 -lrd 0.97 --layers 3 -tds 1 (--MAEreload 1 --previous_dir /path/to/pretrainedcheckpoint)(optional)
 ```
 
-## Train imcomplete 2D->3D Model
+## Train imcomplete 2D->3D  Model
 You can reload pretrained model or train model without reloading checkpoint:
 ```python
-python pretrainer.py -f 27 -b 2048 --model MAE -k gt --train 1 --layers 3 -tds 2 --lr 0.0002 -lrd 0.97 --name maskedliftcam -tmr 0 -smn 6 --gpu 0,1 --dataset h36m --MAE --comp2dlift 1 
+python pretrainer.py -f 27 -b 2048 --model MAE -k gt --train 1 --layers 3 -tds 2 --lr 0.0002 -lrd 0.97 --name maskedliftcam --gpu 0,1 --dataset h36m --MAE --comp2dlift 1 --n_joints 17 --test_augmentation True
 (--MAEreload 1 --MAEcp /path/to/model)(optional)  
 ```
+
 
 ## Train imcomplete 3D -> 3D Model
 You can reload pretrained model or train model without reloading checkpoint:
 ```python 
-python pretrainer.py -f 27 -b 2048 --model MAE -k gt --train 1 --layers 3 -tds 2 --lr 0.0002 -lrd 0.97 --name comp3dcam -tmr 0 -smn 3 --gpu 0,1 --dataset h36m --MAE --comp3d 1 
+python pretrainer.py -f 27 -b 2048 --model MAE -k gt --train 1 --layers 3 -tds 2 --lr 0.0002 -lrd 0.97 --name comp3dcam --gpu 0,1 --dataset h36m --MAE --comp3d 1 --n_joints 17 
 (--MAEreload 1 --MAEcp /path/to/model)(optional)
 ```
 
