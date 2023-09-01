@@ -62,7 +62,7 @@ python pretrainer.py -f 27 --model MAE --n_joints 17 \
 --gpu 1 --dataset h36m --MAE --comp2dlift 1 \ 
 --MAEreload 1 --MAEcp path/to/checkpoint --mask_manner2D 0,1,2,3
 ```
-```
+
 
 ## Pretraining from scratch
 
