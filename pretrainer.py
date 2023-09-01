@@ -40,7 +40,11 @@ if __name__ == '__main__':
         model['MAE'] =   nn.DataParallel(MPMmask(opt)).cuda()
     else:
         model['MAE'] =   nn.DataParallel(MPMmask2(opt)).cuda()
-        
+    
+    print('poseaug', opt.poseaug)
+    print('n_joints', opt.n_joints)
+    print('shuffle', opt.shuffle)
+    print('testaug', opt.test_augmentation)
     # define model and load weight
     model_params = 0
     for parameter in model['MAE'].parameters():
@@ -115,7 +119,25 @@ if __name__ == '__main__':
                 param_group['lr'] *= opt.lr_decay
                 lr *= opt.lr_decay
 
+def input_augmentation_MAE(input_2D, model_trans, joints_left, joints_right, mask, spatial_mask=None):
+    N, _, T, J, C = input_2D.shape
 
+    input_2D_flip = input_2D[:, 1].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4)
+    input_2D_non_flip = input_2D[:, 0].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4)
+
+    output_2D_flip = model_trans(input_2D_flip, mask, spatial_mask)
+
+    output_2D_flip[:, 0] *= -1
+
+    output_2D_flip[:, :, :, joints_left + joints_right] = output_2D_flip[:, :, :, joints_right + joints_left]
+
+    output_2D_non_flip = model_trans(input_2D_non_flip, mask, spatial_mask)
+
+    output_2D = (output_2D_non_flip + output_2D_flip) / 2
+
+    input_2D = input_2D_non_flip
+
+    return input_2D, output_2D
 
 
 

@@ -81,7 +81,11 @@ class Fusion(data.Dataset):
                     out_poses_2d[(subject_name, seq_name, cam)]=data_2d
                 
             assert self.opt.n_joints==16,"n_joints must be 16 in mpi_inf_3dhp"  
-            trans = [14,8,9,10,11,12,13,15,16,0,5,6,7,2,3,4]
+            if self.opt.n_joints==16:
+                trans = [14,8,9,10,11,12,13,15,16,0,5,6,7,2,3,4]
+            # only use in 16 keypoints, in 17 keypoints mode, better use h36m+poseaug
+            # else:
+            #     trans = 
             
                     
             for seq in out_poses_3d.keys():

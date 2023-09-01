@@ -133,7 +133,7 @@ class MPMmask(torch.nn.Module):
             x_out2 = x_out2.permute(0, 2, 1).contiguous()
             x_out_2d = x_out2.view(b, f, self.num_joints_in, 2)
 
-            if self.comp2dlift==1:
+            if self.comp2dlift==1 or self.onlylift==1:
                 x_out3 = self.decoder3d(x_full)
                 x_out3 = x_out3.permute(0, 2, 1).contiguous()
                 x_out3 = self.fcn_dec3d(x_out3)

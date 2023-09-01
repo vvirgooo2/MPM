@@ -16,7 +16,7 @@ class opts():
         self.parser.add_argument('-k', '--keypoints', default='cpn_ft_h36m_dbb', type=str)
         self.parser.add_argument('--data_augmentation', type=bool, default=True)
         self.parser.add_argument('--reverse_augmentation', type=bool, default=False)
-        self.parser.add_argument('--test_augmentation', type=bool, default=True)
+        self.parser.add_argument('--test_augmentation', type=bool, default=False)
         self.parser.add_argument('--crop_uv', type=int, default=0)
         self.parser.add_argument('--root_path', type=str, default='./dataset/')
         self.parser.add_argument('-a', '--actions', default='*', type=str)
@@ -79,8 +79,11 @@ class opts():
         self.parser.add_argument('--ba_range_w', default=12.5e-2, type=float, help='bone angle modification range.')
         self.parser.add_argument('--blr_tanhlimit', default=1.5e-1, type=float, help='bone length change limit.')
         self.parser.add_argument('--blr_limit', default=1e-1, type=float, help='bone length change limit.')
-    
-    
+
+        # pose completion
+        self.parser.add_argument('--mask_manner3D', default='0,1,2,3,6', type=str)
+        self.parser.add_argument('--mask_manner2D', default='0,1,2,3,9', type=str)
+        
     def parse(self):
         self.init()
         self.opt = self.parser.parse_args()
@@ -99,6 +102,9 @@ class opts():
             self.opt.joints_left = [4, 5, 6, 11, 12, 13]  
             self.opt.joints_right = [1, 2, 3, 14, 15, 16]
 
+        self.opt.tubemask2D = list(map(int, self.opt.mask_manner2D.split(",")))
+        self.opt.tubemask3D = list(map(int, self.opt.mask_manner3D.split(",")))
+        
         filter_widths = {
                 '1': [1],
                 '9': [1, 3, 3],

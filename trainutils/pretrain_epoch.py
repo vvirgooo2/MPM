@@ -29,7 +29,8 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
 
     total_iter = len(dataLoader)
     print()
-    
+    joints_left = opt.joints_left
+    joints_right = opt.joints_right
     if opt.shuffle==1:
         for i, data in enumerate(tqdm(dataLoader, 0)):
             print('\r' + 'NormalEpoch '+ str(epoch)+' :' + 'iters: ' + str(i) + '/' + str(total_iter),end='')
@@ -99,6 +100,60 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
             return MAEp1, MAE3dp1, MAEliftp1, loss_all['loss'].avg
     
     elif opt.onlylift==1:
+        for i, data in enumerate(tqdm(dataLoader, 0)):
+            print('\r' + 'CompEpoch '+ str(epoch)+' :' + 'iters: ' + str(i) + '/' + str(total_iter),end='')
+            input_2D, input_3D, cam = data
+            # input_2D, input_3D - tensor 
+
+            input_2D_new, input_3D_new = input_2D, input_3D
+
+            [input_2D, input_3D] = get_varialbe(split,[input_2D_new, input_3D_new])
+            
+            # convert to relative
+            if len(input_3D.shape) == 4:
+                # input_3D= input_3D - input_3D[:, :, :1, :]
+                input_3D[:, :, 0] = 0   
+            else:
+                raise ValueError("Invalid inputs 3D shape"+str(input_3D.shape))
+        
+            N = input_2D.size(0)
+
+            input_2D = input_2D.type(torch.cuda.FloatTensor)
+            input_3D = input_3D.type(torch.cuda.FloatTensor)
+            spatial_mask2D, spatial_mask3D, mask2D, mask3D, tmask2D, tmask3D = TubeMaskGen(opt, N)
+            # match2D recover
+            output_3D = model_MAE(input_3D, spatial_mask3D, tmask3D)
+            output_2D, output_3D_masklift = model_MAE(input_2D, spatial_mask2D, tmask2D)
+
+            loss3d = mpjpe_cal(output_3D, input_3D)
+            loss2d = mpjpe_cal(output_2D, input_2D)
+            losslift = mpjpe_cal(output_3D_masklift, input_3D)
+           
+            loss = 3*loss3d + 2*loss2d + 8*losslift
+            loss_all['loss'].update(loss.detach().cpu().numpy() * N, N)
+            
+            if split == 'train':
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            elif split == 'test':
+                output_3D[:,:,0] = 0
+                output_2D[:,:,0] = 0
+                output_3D_masklift[:,:,0] = 0
+                action_error_sum_MAE3,  detail = test_calculation(output_3D, input_3D, action, action_error_sum_MAE3, opt.dataset,0,MAE=opt.MAE)
+                action_error_sum_MAE,   detail = test_calculation(output_2D, input_2D, action, action_error_sum_MAE, opt.dataset,0,MAE=opt.MAE)
+                action_error_sum_Lift,  detail = test_calculation(input_3D, output_3D_masklift, action, action_error_sum_Lift, opt.dataset,0,MAE=opt.MAE)
+        print()
+        
+        if split == 'train':
+            return loss_all['loss'].avg
+
+        elif split == 'test':
+            MAE3dp1, _ = print_error(opt.dataset, action_error_sum_MAE3, opt.train)
+            MAEp1, _ = print_error(opt.dataset, action_error_sum_MAE, opt.train)
+            MAEliftp1, _ = print_error(opt.dataset, action_error_sum_Lift, opt.train)
+            return MAEp1, MAE3dp1, MAEliftp1, loss_all['loss'].avg
         pass
     
     elif opt.comp3d==1:
@@ -113,7 +168,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
             
             # convert to relative
             if len(input_3D.shape) == 4:
-                input_3D= input_3D - input_3D[:, :, :1, :]
+                # input_3D= input_3D - input_3D[:, :, :1, :]
                 input_3D[:, :, 0] = 0   
             else:
                 raise ValueError("Invalid inputs 3D shape"+str(input_3D.shape))
@@ -122,7 +177,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
 
             input_2D = input_2D.type(torch.cuda.FloatTensor)
             input_3D = input_3D.type(torch.cuda.FloatTensor)
-            spatial_mask2D, spatial_mask3D, mask2D, mask3D, tmask2D, tmask3D = TubeMaskGen(opt, N)
+            spatial_mask2D, spatial_mask3D, mask2D, mask3D, tmask2D, tmask3D = MaskGen(opt, N)
             # match2D recover
             output_3D = model_MAE(input_3D, spatial_mask3D, tmask3D)
             loss3d = mpjpe_cal(output_3D, input_3D)
@@ -138,6 +193,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
                 optimizer.step()
 
             elif split == 'test':
+                # comp[:,:,0]  = 0
                 action_error_sum_MAE3,  detail = test_calculation(comp, input_3D, action, action_error_sum_MAE3, opt.dataset,0,MAE=opt.MAE)
         print()
         
@@ -159,7 +215,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
             
             # convert to relative
             if len(input_3D.shape) == 4:
-                input_3D= input_3D - input_3D[:, :, :1, :]
+                # input_3D= input_3D - input_3D[:, :, :1, :]
                 input_3D[:, :, 0] = 0   
             else:
                 raise ValueError("Invalid inputs 3D shape"+str(input_3D.shape))
@@ -171,7 +227,10 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
             spatial_mask2D, spatial_mask3D, mask2D, mask3D, tmask2D, tmask3D = TubeMaskGen(opt, N)
             
             # match2D recover
-            output_2D, output_3D_masklift = model_MAE(input_2D, spatial_mask2D, tmask2D)
+            if opt.test_augmentation and split =='test':
+                input_2D, output_2D, output_3D_masklift = input_augmentation_MAE2DLift(input_2D, model_MAE, joints_left, joints_right,tmask2D, spatial_mask2D)
+            else:
+                output_2D, output_3D_masklift = model_MAE(input_2D, spatial_mask2D, tmask2D)
             loss2d = mpjpe_cal(input_2D, output_2D)
             losslift = mpjpe_cal(output_3D_masklift, input_3D)
             loss = 2* losslift + loss2d
@@ -184,6 +243,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None, pos
 
             elif split == 'test':
                 # matched 2D recover & lift error
+                output_3D_masklift[:, :, 0 ] = 0
                 action_error_sum_MAE,   detail = test_calculation(output_2D, input_2D, action, action_error_sum_MAE, opt.dataset,0,MAE=opt.MAE)
                 action_error_sum_Lift,  detail = test_calculation(input_3D, output_3D_masklift, action, action_error_sum_Lift, opt.dataset,0,MAE=opt.MAE)
         print()
@@ -237,21 +297,37 @@ def MaskGen(opt):
 def TubeMaskGen(opt, b):
     f = opt.frames
     random_num = opt.spatial_mask_num
+    # mask_manner = np.array([
+    #     [1,2,3], # left leg
+    #     [13,14,15], # left arm
+    #     [10,11,12], # right arm
+    #     [4,5,6]  # right leg
+    # ],dtype=np.int32)
+    # mask_sample = [2]
+    
+    # mask_manner2d = np.array([
+    #     [1,2,3,4,5,6], # two leg
+    #     [10,11,12,13,14,15], # two arm
+    #     [1,2,3,13,14,15], # left leg + left arm
+    #     [4,5,6,10,11,12]  # right leg + right arm
+    # ],dtype=np.int32)
+    # mask_sample2d = [0,1,2,3,9,9]
+
     mask_manner = np.array([
-        [1,2,3], # left leg
-        [13,14,15], # left arm
-        [10,11,12], # right arm
-        [4,5,6]  # right leg
+        [1,2,3], # left leg 12.4 
+        [14,15,16], # left arm 24.0 
+        [11,12,13], # right arm 21.6 
+        [4,5,6]  # right leg 13.0 
     ],dtype=np.int32)
-    mask_sample = [0,1,2,3]
+    mask_sample = opt.tubemask3D
     
     mask_manner2d = np.array([
         [1,2,3,4,5,6], # two leg
-        [10,11,12,13,14,15], # two arm
-        [1,2,3,13,14,15], # left leg + left arm
-        [4,5,6,10,11,12]  # right leg + right arm
+        [11,12,13,14,15,16], # two arm
+        [1,2,3,14,15,16], # left leg + left arm
+        [4,5,6,11,12,13]  # right leg + right arm
     ],dtype=np.int32)
-    mask_sample2d = [0,1,2,3]
+    mask_sample2d = opt.tubemask2D
     
     
     # Gen 2D mask
@@ -262,11 +338,11 @@ def TubeMaskGen(opt, b):
             spatial_mask2D[k,mask_manner2d[d]] = True
         else:
             num = d-3
-            rand_idx = np.random.choice(range(0,16), num, replace=False) 
+            rand_idx = np.random.choice(range(0,17), num, replace=False) 
             spatial_mask2D[k,rand_idx] = True
             
 
-    mask_num = int(f*opt.temporal_mask_rate)
+    mask_num = int(0)
     mask2D = np.hstack([
         np.zeros(f - mask_num),
         np.ones(mask_num),
@@ -282,9 +358,14 @@ def TubeMaskGen(opt, b):
     spatial_mask3D = np.zeros((b, opt.n_joints), dtype=bool)  #spatial mask
     for k in range(b):
         d = np.random.choice(mask_sample, 1)[0]
-        spatial_mask3D[k,mask_manner[d]] = True
+        if(d<4):
+            spatial_mask3D[k,mask_manner[d]] = True
+        else:
+            num = d-3
+            rand_idx = np.random.choice(range(0,17), num, replace=False) 
+            spatial_mask3D[k,rand_idx] = True
 
-    mask_num = int(f*opt.temporal_mask_rate)
+    mask_num = int(0)
     mask3D = np.hstack([
         np.zeros(f - mask_num),
         np.ones(mask_num),
@@ -295,3 +376,27 @@ def TubeMaskGen(opt, b):
     spatial_mask3D = torch.from_numpy(spatial_mask3D).to(torch.bool).cuda()
     spatial_mask2D = torch.from_numpy(spatial_mask2D).to(torch.bool).cuda()
     return spatial_mask2D, spatial_mask3D, mask2D, mask3D, tmask2D, tmask3D
+
+def input_augmentation_MAE2DLift(input_2D, model_trans, joints_left, joints_right,  spatial_mask, mask):
+    N, _, T, J, C = input_2D.shape
+
+    input_2D_flip = input_2D[:, 1].view(N, T, J, C,)
+    input_2D_non_flip = input_2D[:, 0].view(N, T, J, C)
+
+    output_2D_flip, output_3D_flip = model_trans(input_2D_flip, mask, spatial_mask)
+
+    # reflip x
+    output_2D_flip[:,:,:,0] *= -1
+    output_2D_flip[:, :, joints_left + joints_right] = output_2D_flip[:, :, joints_right + joints_left]
+
+    output_3D_flip[:,:,:,0] *= -1
+    output_3D_flip[:, :, joints_left + joints_right] = output_3D_flip[:, :, joints_right + joints_left]
+
+    output_2D_non_flip, output_3D_non_flip = model_trans(input_2D_non_flip, mask, spatial_mask)
+
+    output_2D = (output_2D_non_flip + output_2D_flip) / 2
+    output_3D = (output_3D_non_flip + output_3D_flip) / 2
+
+    input_2D = input_2D_non_flip
+
+    return input_2D, output_2D, output_3D

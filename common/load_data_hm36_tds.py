@@ -55,8 +55,7 @@ class Fusion(data.Dataset):
 
                 positions_3d = []
                 for cam in anim['cameras']:
-                    pos_3d = world_to_camera(anim['positions'], R=cam['orientation'], t=cam['translation'])
-                    # pos_3d = anim['positions']               
+                    pos_3d = world_to_camera(anim['positions'], R=cam['orientation'], t=cam['translation'])            
                     if self.opt.poseaug==0:
                         pos_3d[:, 1:] -= pos_3d[:, :1] 
                     
@@ -165,8 +164,15 @@ class Fusion(data.Dataset):
         
      
         if self.MAE and not self.opt.shuffle:
+
+
             seq_name, start, end, flip, reverse = self.generator.pairs[index]
-            cam, pose_2D, pose_3D, action, subject, cam_ind = self.generator.get_batch(seq_name, start, end, flip,reverse)                     
+            cam, pose_2D, pose_3D, action, subject, cam_ind = self.generator.get_batch(seq_name, start, end, flip,reverse)    
+            
+            if self.train == False and self.test_aug and self.opt.comp2dlift==1:
+                _, pose_2D_aug, _ , _, _, _ = self.generator.get_batch(seq_name, start, end, flip=True, reverse=reverse)
+                pose_2D_aug = np.concatenate((np.expand_dims(pose_2D,axis=0),np.expand_dims(pose_2D_aug,axis=0)),0)                    
+                return pose_2D_aug, pose_3D, cam                 
             return pose_2D, pose_3D, cam
         
         elif self.MAE and self.opt.shuffle:
