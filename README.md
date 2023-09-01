@@ -19,7 +19,7 @@ Our model is evaluated on [Human3.6M](http://vision.imar.ro/human3.6m) and [MPI-
 Dataset setting is same as this repo [P-STMO](https://github.com/paTRICK-swk/P-STMO). You can download the processed .npz file from their repo and put the .npz files in ./dataset folder.
 
 ### AMASS
-coming soon
+Code and Data will be updated after the paper is published.
 
 ## Evaluating our models
 Checkpoint: [link](https://drive.google.com/drive/folders/1wALsIyyHnKzVDCYjUpuC7N_MFZHcRkA5?usp=drive_link)
